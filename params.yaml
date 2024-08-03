@@ -1,0 +1,17 @@
+TYPE: political_alignment
+BATCH_SIZE: 16
+EPOCHS: 2
+WEIGHTS: imagenet
+C: 1.0
+LEARNING_RATE: 0.01
+TOPICS:
+  - Government Schemes and Initiatives
+  - Political Campaigns and Rallies
+  - Statements and Speeches by Politicians
+  - Social and Cultural Issues
+  - Economic Policies and Reforms
+  - Public Reactions and Opinions
+  - Development Projects and Infrastructure
+  - Law and Order
+  - Environmental Policies and Issues
+  - Health and Education Policies

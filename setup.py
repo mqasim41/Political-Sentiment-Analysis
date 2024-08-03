@@ -8,7 +8,7 @@ __version__ = "0.0.0"
 
 REPO_NAME = "Political-Sentiment-Analysis"
 AUTHOR_USER_NAME = "mqasim41"
-SRC_REPO = "sentimentAnalyser"
+SRC_REPO = "sentimentAnalysis"
 AUTHOR_EMAIL = "mqasim.bese21seecs@seecs.edu.pk"
 
 

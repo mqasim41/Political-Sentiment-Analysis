@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: sentimentAnalysis
+Version: 0.0.0
+Summary: A small python package for sentiment analysis of koo posts
+Home-page: https://github.com/mqasim41/Political-Sentiment-Analysis
+Author: mqasim41
+Author-email: mqasim.bese21seecs@seecs.edu.pk
+Project-URL: Bug Tracker, https://github.com/mqasim41/Political-Sentiment-Analysis/issues
+
+# Political-Sentiment-Analysis
+A repository containing the training, evaluation and correlational analysis code for Indian political sentiment analysis.
