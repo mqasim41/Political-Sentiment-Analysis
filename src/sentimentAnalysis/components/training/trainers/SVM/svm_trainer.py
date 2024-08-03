@@ -8,7 +8,6 @@ from sklearn.svm import SVC
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sentimentAnalysis.components.training.trainers.model_trainer import ModelTrainer
 from sentimentAnalysis import logger
-import os
 
 class SVMTraining(ModelTrainer):
     def __init__(self, config):

@@ -14,29 +14,25 @@ class BERTTraining(ModelTrainer):
         self.model = None
         self.config = config
         self.encoder = LabelEncoder()
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def train(self):
         config = self.config
-        train_data_path = Path(str(config.data_path)+'/train_data.json')
+        train_data_path = Path(str(config.data_path) + '/train_data.json')
         df = pd.read_json(train_data_path, lines=True)
         texts = df['title'].values
         labels = df[config.type].values
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        
-        # Encode labels to integers
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
-        
         num_labels = len(set(encoded_labels))
         self.model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=num_labels)
-
+        self.model.to(self.device)
         encodings = self.tokenizer(texts.tolist(), truncation=True, padding=True, max_length=512, return_tensors='pt')
-        inputs = encodings['input_ids']
-        attention_mask = encodings['attention_mask']
-        targets = torch.tensor(encoded_labels)
-
+        inputs = encodings['input_ids'].to(self.device)
+        attention_mask = encodings['attention_mask'].to(self.device)
+        targets = torch.tensor(encoded_labels).to(self.device)
         dataset = KooDataset(inputs, targets, attention_mask)
-
         training_args = TrainingArguments(
             per_device_train_batch_size=config.params_batch_size,
             num_train_epochs=config.params_epochs,
@@ -52,13 +48,14 @@ class BERTTraining(ModelTrainer):
         self.save(config)
 
     def predict(self, data):
+        self.model.to(self.device)
         encodings = self.tokenizer(data, truncation=True, padding=True, max_length=512, return_tensors='pt')
-        inputs = encodings['input_ids']
-        attention_mask = encodings['attention_mask']
+        inputs = encodings['input_ids'].to(self.device)
+        attention_mask = encodings['attention_mask'].to(self.device)
         with torch.no_grad():
             outputs = self.model(input_ids=inputs, attention_mask=attention_mask)
         predictions = torch.argmax(outputs.logits, dim=1)
-        return predictions.numpy()
+        return predictions.cpu().numpy()
 
     def save(self, config):
         if self.model is not None:
