@@ -70,6 +70,7 @@ class ConfigurationManager:
         eval_config = EvaluationConfig(
             data_path=Path(self.config.evaluation.data_path),
             path_of_model=Path(trainer.model_save_dir+'/bert_model'),
+            model_type=trainer.model_type,
             all_params=self.params,
             type=self.params.TYPE,
             params_batch_size=self.params.BATCH_SIZE

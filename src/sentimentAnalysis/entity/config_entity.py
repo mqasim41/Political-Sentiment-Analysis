@@ -35,6 +35,7 @@ class TrainingConfig:
 @dataclass(frozen=True)
 class EvaluationConfig:
     data_path: Path
+    model_type: str
     path_of_model: Path
     all_params: dict
     type: str

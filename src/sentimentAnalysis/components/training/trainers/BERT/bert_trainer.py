@@ -23,16 +23,22 @@ class BERTTraining(ModelTrainer):
         texts = df['title'].values
         labels = df[config.type].values
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        
+        # Encode labels to integers
         label_encoder = LabelEncoder()
         encoded_labels = label_encoder.fit_transform(labels)
+        
         num_labels = len(set(encoded_labels))
         self.model = BertForSequenceClassification.from_pretrained('bert-base-uncased', num_labels=num_labels)
         self.model.to(self.device)
+
         encodings = self.tokenizer(texts.tolist(), truncation=True, padding=True, max_length=512, return_tensors='pt')
-        inputs = encodings['input_ids'].to(self.device)
-        attention_mask = encodings['attention_mask'].to(self.device)
-        targets = torch.tensor(encoded_labels).to(self.device)
+        inputs = encodings['input_ids']
+        attention_mask = encodings['attention_mask']
+        targets = torch.tensor(encoded_labels)
+
         dataset = KooDataset(inputs, targets, attention_mask)
+
         training_args = TrainingArguments(
             per_device_train_batch_size=config.params_batch_size,
             num_train_epochs=config.params_epochs,
@@ -61,7 +67,7 @@ class BERTTraining(ModelTrainer):
         if self.model is not None:
             model_dir = config.model_save_dir
             os.makedirs(model_dir, exist_ok=True)
-            model_path = model_dir + '/bert_model'
+            model_path = Path(str(model_dir) + '/bert_model')
             self.model.save_pretrained(model_path)
             self.tokenizer.save_pretrained(model_path)
         else:

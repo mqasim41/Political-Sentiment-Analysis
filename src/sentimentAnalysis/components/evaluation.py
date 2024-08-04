@@ -2,6 +2,7 @@ import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.preprocessing import LabelEncoder
 import mlflow
 from pathlib import Path
 import pandas as pd
@@ -14,24 +15,30 @@ class Evaluation:
         self.config = config
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.label_encoder = LabelEncoder()
 
     @staticmethod
     def load_model(path: Path) -> BertForSequenceClassification:
         return BertForSequenceClassification.from_pretrained(path)
 
     def _valid_generator(self):
-        test_data_path = Path(str(self.config.data_path)+'/test_data.json')
+        test_data_path = Path(str(self.config.data_path) + '/' + self.config.type + '/test_data.json')
         df = pd.read_json(test_data_path, lines=True)
         texts = df['title'].values
         labels = df[self.config.type].values
+
+        # Encode labels to integers
+        labels = self.label_encoder.fit_transform(labels)
+        
         encodings = self.tokenizer(texts.tolist(), truncation=True, padding=True, max_length=512, return_tensors='pt')
         inputs = encodings['input_ids']
         attention_mask = encodings['attention_mask']
+        labels = torch.tensor(labels, dtype=torch.long)
         dataset = KooDataset(inputs, labels, attention_mask)
         self.valid_loader = DataLoader(dataset, batch_size=self.config.params_batch_size, shuffle=False)
 
     def evaluate(self):
-        if self.config.type == "SVM":
+        if self.config.model_type == "SVM":
             return
         self.model = self.load_model(self.config.path_of_model)
         self.model.to(self.device)
@@ -55,7 +62,7 @@ class Evaluation:
         self.save_score()
 
     def save_score(self):
-        if self.config.type == "SVM":
+        if self.config.model_type == "SVM":
             return
         scores = {
             "accuracy": self.accuracy,
@@ -66,7 +73,7 @@ class Evaluation:
         save_json(path=Path("scores.json"), data=scores)
 
     def log_into_mlflow(self):
-        if self.config.type == "SVM":
+        if self.config.model_type == "SVM":
             return
         with mlflow.start_run():
             mlflow.log_params(vars(self.config))
@@ -77,4 +84,3 @@ class Evaluation:
                 "recall": self.recall
             })
             mlflow.pytorch.log_model(self.model, "model", registered_model_name="BERTModel")
-            
